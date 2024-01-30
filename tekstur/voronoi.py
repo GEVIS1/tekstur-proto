@@ -1,6 +1,11 @@
 from random import seed, randint
-from math import dist
+from math import dist, sqrt
 from PIL import Image, ImageDraw
+
+def euclidean_distance(p: tuple[float, float], q: tuple[float,float]) -> float:
+    p1, p2 = p
+    q1, q2 = q
+    return sqrt(((q1 - p1) ** 2) + ((q2 - p2) ** 2))
 
 def generate_seeds(image: Image, seeds: int, size: int = 10, distance_threshold: float = 3) -> Image:
     canvas = ImageDraw.Draw(image)
