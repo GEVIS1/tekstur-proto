@@ -22,15 +22,9 @@ class Seed():
     def bounds(self):
         return self.x, self.y, self.x + self.size, self.y + self.size
 
-def euclidean_distance(p: tuple[float, float], q: tuple[float,float]) -> float:
-    if len(p) == 2:
-        p1, p2 = p
-    else:
-        p1, p2, _, _ = p
-    if len(q) == 2:
-        q1, q2 = q
-    else:
-        q1, q2, _, _ = q
+def euclidean_distance(p: Seed, q: Seed) -> float:
+    q1, q2 = q.xy
+    p1, p2 = p.xy
     return sqrt(((q1 - p1) ** 2) + ((q2 - p2) ** 2))
 
 def generate_seeds(image: Image, seeds: int, size: int = 10, distance_threshold: float = 3) -> Image:
@@ -39,45 +33,47 @@ def generate_seeds(image: Image, seeds: int, size: int = 10, distance_threshold:
     seed_list = []
     while len(seed_list) < seeds:
         x, y = randint(0 + size, width - size), randint(0 + size, height - size)
-
+        colour = f"rgb({randint(0,255)},{randint(0,255)},{randint(0,255)})"
+        new_seed = Seed(x,y, colour, size)
         appendable = True
 
-        # TODO: Rewrite or squash infinite loop bug
-        for x0, y0, x1, y1 in seed_list:
-            distance = dist((x0, x1), (y0, y1))
-            print(f"{distance=} {distance_threshold=} {distance < distance_threshold=}")
+        # TODO: Rewrite
+        for seed in seed_list:
+            distance = euclidean_distance(seed, new_seed)
             if distance < distance_threshold:
                 appendable = False
-        
-        xy = x, y, x + size, y + size
-
+    
         if appendable:
-            seed_list.append(xy)
+            seed_list.append(new_seed)
 
     return seed_list
 
-def find_closest_point(points, point, img, size) -> tuple[tuple[int,int], tuple[int,int,int]]:
+def find_closest_seed(seeds, point, img) -> tuple[Seed, tuple[int,int,int]]:
     closest = None
+    if not isinstance(point, Seed):
+        x, y = point
+        point = Seed(x, y, "black")
 
-    for pnt in points:
+    for seed in seeds:
         if closest is None:
-            closest = (euclidean_distance(point,pnt), pnt, img.getpixel((pnt[0] + (size/2), pnt[1] + (size/2))))
-        elif (new_dist := euclidean_distance(point, pnt)) < closest[0]:
-            closest = (new_dist, pnt, img.getpixel((pnt[0] + size, pnt[1] + size)))
+            closest = (euclidean_distance(point,seed), seed, img.getpixel(seed.center))
+        elif (new_dist := euclidean_distance(point, seed)) < closest[0]:
+            closest = (new_dist, seed, img.getpixel(seed.center))
 
     return (closest[1], closest[2])
 
 
-def fill_area_around_seeds(image: Image, seeds: list[Seed], size) -> Image:
+def fill_area_around_seeds(image: Image, seeds: list[Seed]) -> Image:
     width, height = image.size
     canvas = ImageDraw.Draw(image)
 
     for y in range(height):
         for x in range(width):
-            point = x,y
-            #pix = img.getpixel(point)
-            [_, color] = find_closest_point(seeds, point, image, size)
-            canvas.point(point, color)
+            point = x, y
+            pix = image.getpixel(point)
+            if pix == (0, 0, 0):
+                [_, color] = find_closest_seed(seeds, point, image)
+                canvas.point(point, color)
 
     return image
 
@@ -85,8 +81,7 @@ def draw_seeds(image, seeds):
     canvas = ImageDraw.Draw(image)
 
     for seed in seeds:
-        random_color = randint(0,255), randint(0,255), randint(0,255)
-        canvas.ellipse(seed, random_color, "black", 2)
+        canvas.ellipse(seed.bounds, seed.color, "white", 2)
 
     return image
 
@@ -102,10 +97,8 @@ def voronoi(width: int, height: int, seeds: int, random_seed: int = None, mode: 
         
         seed(random_seed)
 
-    #TODO: Update to use seed class
     image = Image.new(mode,(width, height))
     seed_list = generate_seeds(image, seeds, 10)
     image = draw_seeds(image, seed_list)
-    image = fill_area_around_seeds(image, seed_list, 10)
-    image = draw_seeds(image, seed_list)
+    image = fill_area_around_seeds(image, seed_list)
     return image
