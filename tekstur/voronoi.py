@@ -1,5 +1,5 @@
 from random import seed, randint
-from math import dist, sqrt
+from math import sqrt
 from PIL import Image, ImageDraw
 
 class Seed():
@@ -56,9 +56,9 @@ def find_closest_seed(seeds, point, img) -> tuple[Seed, tuple[int,int,int]]:
 
     for seed in seeds:
         if closest is None:
-            closest = (euclidean_distance(point,seed), seed, img.getpixel(seed.center))
+            closest = (euclidean_distance(point,seed), seed, seed.color)
         elif (new_dist := euclidean_distance(point, seed)) < closest[0]:
-            closest = (new_dist, seed, img.getpixel(seed.center))
+            closest = (new_dist, seed, seed.color)
 
     return (closest[1], closest[2])
 
@@ -77,7 +77,7 @@ def fill_area_around_seeds(image: Image, seeds: list[Seed]) -> Image:
 
     return image
 
-def draw_seeds(image, seeds):
+def draw_seeds_on_image(image, seeds):
     canvas = ImageDraw.Draw(image)
 
     for seed in seeds:
@@ -85,7 +85,7 @@ def draw_seeds(image, seeds):
 
     return image
 
-def voronoi(width: int, height: int, seeds: int, random_seed: int = None, mode: str = "RGB") -> Image:
+def voronoi(width: int, height: int, seeds: int, random_seed: int = None, mode: str = "RGB", draw_seeds: bool = False) -> Image:
     """
     Generate an image with a voronoi pattern, returns an Image of a
     voronoi pattern with the specified number of seeds.
@@ -98,7 +98,11 @@ def voronoi(width: int, height: int, seeds: int, random_seed: int = None, mode: 
         seed(random_seed)
 
     image = Image.new(mode,(width, height))
+    # TODO: Generate grid and randomly place seed in each square
     seed_list = generate_seeds(image, seeds, 10)
-    image = draw_seeds(image, seed_list)
+    if draw_seeds:
+        image = draw_seeds_on_image(image, seed_list)
+
+    # TODO: Optimize by only checking seeds in pixel's square and neighbouring squares on the grid
     image = fill_area_around_seeds(image, seed_list)
     return image
