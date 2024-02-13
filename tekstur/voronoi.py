@@ -28,10 +28,10 @@ def euclidean_distance(p: Seed, q: Seed) -> float:
     p1, p2 = p.xy
     return sqrt(((q1 - p1) ** 2) + ((q2 - p2) ** 2))
 
-def generate_seeds(image: Image, seeds: int, size: int = 10, distance_threshold: float = 3) -> Image:
+def generate_seeds(image: Image, seeds: int, size: int = 10, distance_threshold: float = 3) -> list[Seed]:
     width, height = image.size
 
-    seed_list = []
+    seed_list: list[Seed] = []
     while len(seed_list) < seeds:
         x, y = randint(0 + size, width - size), randint(0 + size, height - size)
         colour = f"rgb({randint(0,255)},{randint(0,255)},{randint(0,255)})"
