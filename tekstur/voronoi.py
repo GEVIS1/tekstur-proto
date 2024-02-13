@@ -22,6 +22,7 @@ class Seed():
     def bounds(self):
         return self.x, self.y, self.x + self.size, self.y + self.size
 
+#TODO: Check if math dist is faster than this
 def euclidean_distance(p: Seed, q: Seed) -> float:
     q1, q2 = q.xy
     p1, p2 = p.xy
