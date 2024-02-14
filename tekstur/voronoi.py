@@ -28,7 +28,7 @@ def euclidean_distance(p: Seed, q: Seed) -> float:
     p1, p2 = p.xy
     return sqrt(((q1 - p1) ** 2) + ((q2 - p2) ** 2))
 
-def generate_seeds(image: Image, seeds: int, size: int = 10, distance_threshold: float = 3) -> list[Seed]:
+def generate_seeds_random(image: Image, seeds: int, size: int = 10, distance_threshold: float = 3) -> list[Seed]:
     width, height = image.size
 
     seed_list: list[Seed] = []
@@ -46,6 +46,38 @@ def generate_seeds(image: Image, seeds: int, size: int = 10, distance_threshold:
     
         if appendable:
             seed_list.append(new_seed)
+
+    return seed_list
+
+def generate_seeds_grid(image: Image, seeds: int, size: int = 10) -> list[Seed]:
+    grid_col = sqrt(seeds)
+
+    if grid_col % 1 != 0:
+        raise ValueError("Number of seeds must be a perfect square")
+    
+    width, height = image.size
+    grid_gap = width / grid_col
+
+    seed_list: list[Seed] = []
+
+    col, row = 0, 0
+
+    for seed_n in range(seeds):
+        x0 = col * grid_gap
+        x1 = (col * grid_gap) + grid_gap
+        y0 = row * grid_gap
+        y1 = (row * grid_gap) + grid_gap
+        x = randint(x0, x1)
+        y = randint(y0, y1)
+        colour = f"rgb({randint(0,255)},{randint(0,255)},{randint(0,255)})"
+        new_seed = Seed(x, y, colour, size)
+
+        seed_list.append(new_seed)
+
+        col += 1
+        if col == grid_col:
+            col = 0
+            row += 1
 
     return seed_list
 
@@ -86,7 +118,7 @@ def draw_seeds_on_image(image, seeds):
 
     return image
 
-def voronoi(width: int, height: int, seeds: int, random_seed: int = None, mode: str = "RGB", draw_seeds: bool = False) -> Image:
+def voronoi(width: int, height: int, seeds: int, grid: bool = False, random_seed: int = None, mode: str = "RGB", draw_seeds: bool = False) -> Image:
     """
     Generate an image with a voronoi pattern, returns an Image of a
     voronoi pattern with the specified number of seeds.
@@ -99,8 +131,12 @@ def voronoi(width: int, height: int, seeds: int, random_seed: int = None, mode: 
         seed(random_seed)
 
     image = Image.new(mode,(width, height))
-    # TODO: Generate grid and randomly place seed in each square
-    seed_list = generate_seeds(image, seeds, 10)
+    
+    if grid:
+        seed_list = generate_seeds_grid(image, seeds, 10)
+    else:
+        seed_list = generate_seeds_random(image, seeds, 10)
+    
     if draw_seeds:
         image = draw_seeds_on_image(image, seed_list)
 
