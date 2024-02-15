@@ -58,7 +58,7 @@ def generate_seeds_grid(image: Image, seeds: int, size: int = 10) -> list[Seed]:
     width, height = image.size
     grid_gap = width / grid_col
 
-    seed_list: list[Seed] = []
+    seed_list: list[Seed] = [[[] for _ in range(int(grid_col))] for _ in range(int(grid_col))]
 
     col, row = 0, 0
 
@@ -72,7 +72,7 @@ def generate_seeds_grid(image: Image, seeds: int, size: int = 10) -> list[Seed]:
         colour = f"rgb({randint(0,255)},{randint(0,255)},{randint(0,255)})"
         new_seed = Seed(x, y, colour, size)
 
-        seed_list.append(new_seed)
+        seed_list[row][col].append(new_seed)
 
         col += 1
         if col == grid_col:
@@ -96,7 +96,7 @@ def find_closest_seed(seeds, point, img) -> tuple[Seed, tuple[int,int,int]]:
     return (closest[1], closest[2])
 
 
-def fill_area_around_seeds(image: Image, seeds: list[Seed]) -> Image:
+def fill_area_around_seeds_random(image: Image, seeds: list[Seed]) -> Image:
     width, height = image.size
     canvas = ImageDraw.Draw(image)
 
@@ -107,6 +107,49 @@ def fill_area_around_seeds(image: Image, seeds: list[Seed]) -> Image:
             if pix == (0, 0, 0):
                 [_, color] = find_closest_seed(seeds, point, image)
                 canvas.point(point, color)
+
+    return image
+
+def find_grid_indices(x, y, grid_gap, width, height) -> tuple[int,int]:
+    # TODO: Check for robustness
+    col = int(x // grid_gap)
+    row = int(y // grid_gap)
+
+    if col >= width:
+        col = width - 1
+    if row >= height:
+        row = height - 1
+
+    return col, row
+
+def find_neighbors(row: int, col: int, height: int, width: int, seeds: list[list[Seed]]):
+    neighbors = []
+    for neighbor_row in range(-1, 2):
+        for neighbor_col in range(-1, 2):
+            if (new_row := row + neighbor_row) >= 0 \
+                and new_row < len(seeds) \
+                and (new_col := col + neighbor_col) >= 0 \
+                and new_col < len(seeds[0]):
+                neighbors.append(*seeds[new_row][new_col])
+    return neighbors
+
+def fill_area_around_seeds_grid(image: Image, seeds: list[list[Seed]], grid_gap: int) -> Image:
+    width, height = image.size
+    canvas = ImageDraw.Draw(image)
+
+    for y in range(height):
+        for x in range(width):
+            point = x, y
+            col, row = find_grid_indices(x, y, grid_gap, width, height)
+            pix = image.getpixel(point)
+            if pix == (0, 0, 0):
+                neighbors = find_neighbors(row, col, height, width, seeds)
+                
+                [_, color] = find_closest_seed(neighbors, point, image)    
+                canvas.point(point, color)
+
+                    
+
 
     return image
 
@@ -131,9 +174,9 @@ def voronoi(width: int, height: int, seeds: int, grid: bool = False, random_seed
         seed(random_seed)
 
     image = Image.new(mode,(width, height))
-    
+
     if grid:
-        seed_list = generate_seeds_grid(image, seeds, 10)
+        seed_list_grid = generate_seeds_grid(image, seeds, 10)
     else:
         seed_list = generate_seeds_random(image, seeds, 10)
     
@@ -141,5 +184,8 @@ def voronoi(width: int, height: int, seeds: int, grid: bool = False, random_seed
         image = draw_seeds_on_image(image, seed_list)
 
     # TODO: Optimize by only checking seeds in pixel's square and neighbouring squares on the grid
-    image = fill_area_around_seeds(image, seed_list)
+    if grid:
+        image = fill_area_around_seeds_grid(image, seed_list_grid, width / sqrt(seeds))
+    else:
+        image = fill_area_around_seeds_random(image, seed_list)
     return image
