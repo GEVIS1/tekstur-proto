@@ -148,15 +148,17 @@ def fill_area_around_seeds_grid(image: Image, seeds: list[list[Seed]], grid_gap:
                 [_, color] = find_closest_seed(neighbors, point, image)    
                 canvas.point(point, color)
 
-                    
-
-
     return image
 
 def draw_seeds_on_image(image, seeds):
     canvas = ImageDraw.Draw(image)
+    flattened_seeds = []
+    for sublist in seeds:
+        for seed in sublist:
+            flattened_seeds.append(*seed)
+    print(flattened_seeds)
 
-    for seed in seeds:
+    for seed in flattened_seeds:
         canvas.ellipse(seed.bounds, seed.color, "white", 2)
 
     return image
@@ -177,13 +179,17 @@ def voronoi(width: int, height: int, seeds: int, grid: bool = False, random_seed
 
     if grid:
         seed_list_grid = generate_seeds_grid(image, seeds, 10)
+        if draw_seeds:
+            image = draw_seeds_on_image(image, seed_list_grid)
     else:
         seed_list = generate_seeds_random(image, seeds, 10)
+        if draw_seeds:
+            image = draw_seeds_on_image(image, seed_list)
     
-    if draw_seeds:
-        image = draw_seeds_on_image(image, seed_list)
+    
 
     # TODO: Optimize by only checking seeds in pixel's square and neighbouring squares on the grid
+    # TODO: Rewrite in Fortune's algorithm
     if grid:
         image = fill_area_around_seeds_grid(image, seed_list_grid, width / sqrt(seeds))
     else:
