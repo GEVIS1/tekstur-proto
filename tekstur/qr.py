@@ -20,13 +20,13 @@ def fake_qr(width, height, colors=[(0,0,0),(255,255,255)]):
         [None for _ in range(21)],
         [*[None for _ in range(6)], b, *[None for _ in range(14)]],
         [None for _ in range(21)],
-        [b,b,b,b,b,b,b,None,None,None,None,None,None,None,b,b,b,b,b,b,b],
-        [b,w,w,w,w,w,b,None,None,None,None,None,None,None,b,w,w,w,w,w,b],
-        [b,w,b,b,b,w,b,None,None,None,None,None,None,None,b,w,b,b,b,w,b],
-        [b,w,b,b,b,w,b,None,None,None,None,None,None,None,b,w,b,b,b,w,b],
-        [b,w,b,b,b,w,b,None,None,None,None,None,None,None,b,w,b,b,b,w,b],
-        [b,w,w,w,w,w,b,None,None,None,None,None,None,None,b,w,w,w,w,w,b],
-        [b,b,b,b,b,b,b,None,None,None,None,None,None,None,b,b,b,b,b,b,b],
+        [b,b,b,b,b,b,b,None,None,None,None,None,None,None,None,None,None,None,None,None,None],
+        [b,w,w,w,w,w,b,None,None,None,None,None,None,None,None,None,None,None,None,None,None],
+        [b,w,b,b,b,w,b,None,None,None,None,None,None,None,None,None,None,None,None,None,None],
+        [b,w,b,b,b,w,b,None,None,None,None,None,None,None,None,None,None,None,None,None,None],
+        [b,w,b,b,b,w,b,None,None,None,None,None,None,None,None,None,None,None,None,None,None],
+        [b,w,w,w,w,w,b,None,None,None,None,None,None,None,None,None,None,None,None,None,None],
+        [b,b,b,b,b,b,b,None,None,None,None,None,None,None,None,None,None,None,None,None,None],
     ]
 
     for y in range(len(qr)):
